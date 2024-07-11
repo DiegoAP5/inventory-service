@@ -1,5 +1,11 @@
-class Status:
-    def __init__(self, uuid, status, created_at):
-        self.uuid = uuid
-        self.status = status
-        self.created_at = created_at
+import uuid
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.dialects.mysql import CHAR
+from .base import Base
+
+class Status(Base):
+    __tablename__ = 'status'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(CHAR(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    status = Column(String(255))
