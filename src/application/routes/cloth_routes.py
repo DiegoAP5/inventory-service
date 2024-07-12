@@ -4,7 +4,7 @@ from application.controllers.cloth_controller import ClothController
 cloth_bp = Blueprint('cloth', __name__)
 controller = ClothController()
 
-@cloth_bp.route('/cloth', methods=['POST'])
+@cloth_bp.route('cloth', methods=['POST'])
 def create_cloth():
     data = request.json
     new_cloth = controller.create_cloth(data)
