@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from domain.models.period import Period
 from infraestructure.repositories.period_repository import PeriodRepository
-from infraestructure.database import SessionLocal
+from infraestructure.db import SessionLocal
 
 class PeriodController:
     def __init__(self):

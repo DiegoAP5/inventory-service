@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from domain.models.status import Status
 from infraestructure.repositories.status_repository import StatusRepository
-from infraestructure.database import SessionLocal
+from infraestructure.db import SessionLocal
 
 class StatusController:
     def __init__(self):

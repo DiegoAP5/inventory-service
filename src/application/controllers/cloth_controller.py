@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from domain.models.cloth import Cloth
 from infraestructure.repositories.cloth_repository import ClothRepository
-from infraestructure.database import SessionLocal
+from infraestructure.db import SessionLocal
 
 class ClothController:
     def __init__(self):

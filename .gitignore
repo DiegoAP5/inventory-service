@@ -4,4 +4,4 @@ __pycache__
 
 .venv/*
 
-/src/infraestructure/database.py
+/src/infraestructure/db.py

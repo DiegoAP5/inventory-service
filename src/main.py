@@ -1,5 +1,5 @@
 from flask import Flask
-from infraestructure.database import engine, Base
+from infraestructure.db import engine, Base
 from application.routes.cloth_routes import cloth_bp
 from application.routes.period_routes import period_bp
 from application.routes.status_routes import status_bp
