@@ -5,10 +5,10 @@ FROM python:3.8-slim
 WORKDIR /app
 
 # Copiar los archivos requirements.txt primero (para aprovechar la caché de Docker)
-COPY src/requeriments.txt .
+COPY requirements.txt .
 
 # Instalar las dependencias
-RUN pip install --no-cache-dir -r src/requeriments.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el resto del código de la aplicación
 COPY . .
