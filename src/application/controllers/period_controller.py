@@ -30,6 +30,9 @@ class PeriodController:
 
     def delete_period(self, uuid):
         self.repo.delete(uuid)
+
+    def search_period_by_status(self, status):
+        return self.repo.search_by_status(status)
     
     def to_dict(self, period: Period):
         return {
@@ -37,6 +40,5 @@ class PeriodController:
             "uuid": period.uuid,
             "start": period.start,
             "end": period.end,
-            "status": period.status,
-            "cloth_uuid": period.cloth_uuid
+            "status_id": period.status_id
         }

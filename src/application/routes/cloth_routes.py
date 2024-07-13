@@ -36,12 +36,15 @@ def delete_cloth(uuid):
     return '', 204
 
 @cloth_bp.route('/cloth/search', methods=['GET'])
-def search_cloth_by_type():
+def search_cloth_by_type_and_period():
     type = request.args.get('type')
-    clothes = controller.search_cloth_by_type(type)
+    period_id = request.args.get('period_id')
+    clothes = controller.search_cloth_by_type_and_period(type, period_id)
     return jsonify([controller.to_dict(cloth) for cloth in clothes])
 
-@cloth_bp.route('/cloth/status/<int:status_id>', methods=['GET'])
-def list_cloth_by_status(status_id):
-    clothes = controller.list_cloth_by_status(status_id)
+@cloth_bp.route('/cloth/status', methods=['GET'])
+def list_cloth_by_status_and_period():
+    status_id = request.args.get('status_id')
+    period_id = request.args.get('period_id')
+    clothes = controller.list_cloth_by_status_and_period(status_id, period_id)
     return jsonify([controller.to_dict(cloth) for cloth in clothes])

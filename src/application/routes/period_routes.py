@@ -34,3 +34,9 @@ def update_period(uuid):
 def delete_period(uuid):
     controller.delete_period(uuid)
     return '', 204
+
+@period_bp.route('/period/status', methods=['GET'])
+def search_period_by_status():
+    status = request.args.get('status')
+    periods = controller.search_period_by_status(status)
+    return jsonify([controller.to_dict(period) for period in periods])

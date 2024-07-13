@@ -31,11 +31,11 @@ class ClothController:
     def delete_cloth(self, uuid):
         self.repo.delete(uuid)
 
-    def search_cloth_by_type(self, type):
-        return self.repo.search_by_type(type)
+    def search_cloth_by_type_and_period(self, type, period_id):
+        return self.repo.search_by_type_and_period(type, period_id)
 
-    def list_cloth_by_status(self, status_id):
-        return self.repo.list_by_status(status_id)
+    def list_cloth_by_status_and_period(self, status_id, period_id):
+        return self.repo.list_by_status_and_period(status_id, period_id)
     
     def to_dict(self, cloth: Cloth):
         return {
@@ -50,6 +50,7 @@ class ClothController:
             "description": cloth.description,
             "size": cloth.size,
             "status_id": cloth.status_id,
+            "period_id": cloth.period_id,
             "created_at": cloth.created_at,
             "sold_at": cloth.sold_at
         }
