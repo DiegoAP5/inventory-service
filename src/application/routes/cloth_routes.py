@@ -10,19 +10,19 @@ def create_cloth():
     new_cloth = controller.create_cloth(data)
     return jsonify(controller.to_dict(new_cloth)), 201
 
-@cloth_bp.route('/inventoryService/cloth/<uuid>', methods=['GET'])
+@cloth_bp.route('/cloth/<uuid>', methods=['GET'])
 def get_cloth(uuid):
     cloth = controller.get_cloth(uuid)
     if cloth:
         return jsonify(controller.to_dict(cloth))
     return jsonify({"error": "Cloth not found"}), 404
 
-@cloth_bp.route('/inventoryService/cloth', methods=['GET'])
+@cloth_bp.route('/cloth', methods=['GET'])
 def get_all_clothes():
     clothes = controller.get_all_clothes()
     return jsonify([controller.to_dict(cloth) for cloth in clothes])
 
-@cloth_bp.route('/inventoryService/cloth/<uuid>', methods=['PUT'])
+@cloth_bp.route('/cloth/<uuid>', methods=['PUT'])
 def update_cloth(uuid):
     data = request.json
     cloth = controller.update_cloth(uuid, data)
@@ -30,7 +30,7 @@ def update_cloth(uuid):
         return jsonify(controller.to_dict(cloth))
     return jsonify({"error": "Cloth not found"}), 404
 
-@cloth_bp.route('/inventoryService/cloth/<uuid>', methods=['DELETE'])
+@cloth_bp.route('/cloth/<uuid>', methods=['DELETE'])
 def delete_cloth(uuid):
     controller.delete_cloth(uuid)
     return '', 204
