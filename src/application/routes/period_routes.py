@@ -37,6 +37,6 @@ def delete_period(uuid):
 
 @period_bp.route('/period/status', methods=['GET'])
 def search_period_by_status():
-    status = request.args.get('status')
-    periods = controller.search_period_by_status(status)
+    status_id = request.args.get('status_id')
+    periods = controller.search_period_by_status(status_id)
     return jsonify([controller.to_dict(period) for period in periods])
