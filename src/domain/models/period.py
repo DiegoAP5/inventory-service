@@ -12,5 +12,6 @@ class Period(Base):
     end = Column(Date)
     status_id = Column(Integer, ForeignKey('status.id'))
     
+    reports = relationship("Report", back_populates="period", cascade="all, delete-orphan")
     status = relationship("Status", back_populates="periods")
     clothes = relationship("Cloth", back_populates="period", cascade="all, delete-orphan")
