@@ -4,7 +4,7 @@ from application.controllers.status_controller import StatusController
 status_bp = Blueprint('status', __name__)
 controller = StatusController()
 
-@status_bp.route('/status', methods=['POST'])
+@status_bp.route('/status/create', methods=['POST'])
 def create_status():
     data = request.json
     new_status = controller.create_status(data)

@@ -1,19 +1,19 @@
-# src/domain/models/report.py
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from .base import Base
-import uuid
+from sqlalchemy.dialects.postgresql import UUID
+from uuid import uuid4
+from infraestructure.db import Base
 
 class Report(Base):
-    __tablename__ = "reports"
+    __tablename__ = 'reports'
 
     id = Column(Integer, primary_key=True, index=True)
-    uuid = Column(String, unique=True, index=True, default=lambda: str(uuid.uuid4()))
-    period_id = Column(Integer, ForeignKey('periods.id'), nullable=False)
-    total_cloth = Column(Integer, nullable=False, default=0)
-    cloth_selled = Column(Integer, nullable=False, default=0)
-    cloth_inSell = Column(Integer, nullable=False, default=0)
-    invest = Column(Float, nullable=False, default=0.0)
-    earnings = Column(Float, nullable=False, default=0.0)
+    uuid = Column(String(36), default=lambda: str(uuid4()), unique=True, index=True)
+    period_id = Column(Integer, ForeignKey('period.id'), nullable=False)
+    total_cloth = Column(Integer, nullable=False)
+    cloth_selled = Column(Integer, nullable=False)
+    cloth_inSell = Column(Integer, nullable=False)
+    invest = Column(Integer, nullable=False)
+    earnings = Column(Integer, nullable=False)
 
-    period = relationship("Period", back_populates="report")
+    period = relationship("Period", back_populates="reports")

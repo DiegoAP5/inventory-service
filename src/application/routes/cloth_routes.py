@@ -4,13 +4,13 @@ from application.controllers.cloth_controller import ClothController
 cloth_bp = Blueprint('cloth', __name__)
 controller = ClothController()
 
-@cloth_bp.route('/cloth', methods=['POST'])
+@cloth_bp.route('/cloth/create', methods=['POST'])
 def create_cloth():
     data = request.json
     response = controller.create_cloth(data)
     return response.to_response()
 
-@cloth_bp.route('/cloth/<uuid>', methods=['PUT'])
+@cloth_bp.route('/cloth/update/<uuid>', methods=['PUT'])
 def update_cloth(uuid):
     data = request.json
     response = controller.update_cloth(uuid, data)
@@ -21,7 +21,7 @@ def get_cloth(uuid):
     response = controller.get_cloth(uuid)
     return response.to_response()
 
-@cloth_bp.route('/cloth/<uuid>', methods=['DELETE'])
+@cloth_bp.route('/cloth/delete/<uuid>', methods=['DELETE'])
 def delete_cloth(uuid):
     response = controller.delete_cloth(uuid)
     return response.to_response()
