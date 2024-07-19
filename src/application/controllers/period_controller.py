@@ -39,6 +39,10 @@ class PeriodController:
         if period:
             return BaseResponse(self.to_dict(period), "Period fetched successfully", True, HTTPStatus.OK)
         return BaseResponse(None, "Period not found", False, HTTPStatus.NOT_FOUND)
+    
+    def get_period_by_user_id(self, id):
+        periods = self.repo.get_by_user_id(id)
+        return BaseResponse([self.to_dict(period) for period in periods], "Periods fetched successfully by user id", True, HTTPStatus.OK)
 
     def delete_period(self, uuid):
         period = self.repo.get_by_uuid(uuid)
@@ -51,8 +55,8 @@ class PeriodController:
         periods = self.repo.get_all()
         return BaseResponse([self.to_dict(period) for period in periods], "Periods fetched successfully", True, HTTPStatus.OK)
 
-    def get_periods_by_status(self, status_id):
-        periods = self.repo.get_by_status(status_id)
+    def get_periods_by_status(self, status_id, user_id):
+        periods = self.repo.get_periods_by_status(status_id, user_id)
         return BaseResponse([self.to_dict(period) for period in periods], "Periods fetched successfully", True, HTTPStatus.OK)
 
     def to_dict(self, period: Period):

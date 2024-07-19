@@ -13,6 +13,9 @@ class PeriodRepository:
 
     def get_by_uuid(self, uuid):
         return self.session.query(Period).filter(Period.uuid == uuid).first()
+    
+    def get_by_user_id(self, id):
+        return self.session.query(Period).filter(Period.user_id == id).all()
 
     def get_all(self):
         return self.session.query(Period).all()
@@ -26,5 +29,5 @@ class PeriodRepository:
             self.session.delete(period)
             self.session.commit()
 
-    def search_by_status(self, status_id):
-        return self.session.query(Period).filter(Period.status_id == status_id).all()
+    def get_periods_by_status(self, status_id, user_id):
+        return self.session.query(Period).filter(Period.status_id == status_id, Period.user_id == user_id).all()

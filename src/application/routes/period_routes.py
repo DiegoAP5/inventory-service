@@ -21,6 +21,11 @@ def get_period(uuid):
     response = controller.get_period(uuid)
     return response.to_response()
 
+@period_bp.route('/period/user/<id>', methods=['GET'])
+def get_period_by_user_id(id):
+    response = controller.get_period_by_user_id(id)
+    return response.to_response()
+
 @period_bp.route('/period/delete/<uuid>', methods=['DELETE'])
 def delete_period(uuid):
     response = controller.delete_period(uuid)
@@ -32,8 +37,7 @@ def list_periods():
     return response.to_response()
 
 
-@period_bp.route('/period/status', methods=['GET'])
-def search_period_by_status():
-    status_id = request.args.get('status_id')
-    response = controller.search_period_by_status(status_id)
+@period_bp.route('/period/status/<status_id>/user/<user_id>', methods=['GET'])
+def search_period_by_status(status_id,user_id):
+    response = controller.get_periods_by_status(status_id,user_id)
     return response.to_response()
