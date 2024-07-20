@@ -46,10 +46,10 @@ class ClothController:
             # Preparar la respuesta
             response_data = daily_sales.reset_index().to_dict(orient='records')
 
-            return BaseResponse(response_data, "Time series data retrieved successfully.", True, 200)
+            return BaseResponse(response_data, "Time series data retrieved successfully.", True, HTTPStatus.OK)
 
         except Exception as e:
-            return BaseResponse(None, "Error during prediction", False, 500)
+            return BaseResponse(None, "Error during prediction", False, HTTPStatus.CONFLICT)
 
     def update_cloth(self, uuid, data):
         cloth = self.repo.get_by_uuid(uuid)
@@ -86,6 +86,34 @@ class ClothController:
         if cloth:
             return BaseResponse([self.to_dict(cloth) for cloth in cloth], "Cloth fetched successfully", True, HTTPStatus.OK)
         return BaseResponse(None, "Cloth not found", False, HTTPStatus.NOT_FOUND)
+    
+    def get_cloth_and_user_id_by_cloth_id(self, cloth_id):
+        try:
+        # Consulta para obtener los datos de la ropa y el user_id a partir del cloth_id
+            result = self.repo.get_cloth_and_user_id(cloth_id)
+
+            if result:
+                cloth, user_id = result
+                response_data = {
+                    'cloth': {
+                        'id': cloth.id,
+                        'uuid': cloth.uuid,
+                        'period_id': cloth.period_id,
+                        'type': cloth.type,
+                        'buy': cloth.buy,
+                        'sellPrice': cloth.sellPrice,
+                        'sold_at': cloth.sold_at,
+                        'status_id': cloth.status_id,
+                        'created_at': cloth.created_at
+                    },
+                    'user_id': user_id
+                }
+                return BaseResponse(response_data, "Cloth data and User ID retrieved successfully.", True, HTTPStatus.OK)
+            else:
+                return BaseResponse(None, "Cloth ID not found.", False, HTTPStatus.NOT_FOUND)
+            
+        except Exception as e:
+            return BaseResponse(None, "Error", False, 500)
 
     def list_cloth_by_status_and_period(self, status_id, period_id):
         cloth = self.repo.list_by_status_and_period(status_id, period_id)

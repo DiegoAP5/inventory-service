@@ -10,6 +10,11 @@ def create_cloth():
     response = controller.create_cloth(data)
     return response.to_response()
 
+@cloth_bp.route('/cloth/user/<int:cloth_id>/', methods=['GET'])
+def get_cloth_and_user_id(cloth_id):
+    response = controller.get_cloth_and_user_id_by_cloth_id(cloth_id)
+    return response.to_response()
+
 @cloth_bp.route('/cloth/update/<uuid>', methods=['PUT'])
 def update_cloth(uuid):
     data = request.json
@@ -32,8 +37,8 @@ def list_clothes():
     return response.to_response()
 
 @cloth_bp.route('/cloth/prediction/<user_id>', methods=['GET'])
-def get_statics():
-    response = controller.get_sales_prediction()
+def get_time_series(user_id):
+    response = controller.get_sales_prediction(user_id)
     return response.to_response()
 
 @cloth_bp.route('/cloth/search', methods=['GET'])
