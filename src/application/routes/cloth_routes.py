@@ -54,3 +54,16 @@ def list_cloth_by_status_and_period():
     period_id = request.args.get('period_id')
     response = controller.list_cloth_by_status_and_period(status_id, period_id)
     return response.to_response()
+
+@cloth_bp.route('/cloth/all/type', methods=['GET'])
+def all_cloth_by_status_and_type():
+    status_id = request.args.get('status_id')
+    type = request.args.get('type')
+    response = controller.list_cloth_by_status_and_type(type, status_id)
+    return response.to_response()
+
+@cloth_bp.route('/cloth/all/status', methods=['GET'])
+def all_cloth_by_status_and_period():
+    status_id = request.args.get('status_id')
+    response = controller.list_cloth_by_status(status_id)
+    return response.to_response()

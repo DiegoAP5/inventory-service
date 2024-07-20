@@ -28,14 +28,24 @@ class ClothController:
         try:
             # Obtener datos de la base de datos
             cloth_data = self.repo.get_to_statics(user_id)
+            
+            if not cloth_data:
+                return BaseResponse(None, "Not data found",False, HTTPStatus.BAD_REQUEST)
 
             # Procesar datos
-            data = [{'date': cloth.selled_date, 'quantity': 1} for cloth in cloth_data]
+            data = [{'date': cloth.sold_at, 'quantity': 1} for cloth in cloth_data]
+            
+            if not data:
+                return BaseResponse(None, "No valid sales dates found for the specified user.", False, HTTPStatus.BAD_REQUEST)
             df = pd.DataFrame(data)
 
             # Asegurarse de que la fecha está en el formato correcto
-            df['date'] = pd.to_datetime(df['date'])
+            df['date'] = pd.to_datetime(df['date'], errors='coerce')
+            df = df.dropna(subset=['date'])
             df = df.set_index('date')
+            
+            if df.empty:
+                return BaseResponse(None, "No valid sales data after filtering dates.", False, HTTPStatus.BAD_REQUEST)
             
             # Agrupar por día y contar las ventas
             daily_sales = df.resample('D').sum().fillna(0)
@@ -49,7 +59,7 @@ class ClothController:
             return BaseResponse(response_data, "Time series data retrieved successfully.", True, HTTPStatus.OK)
 
         except Exception as e:
-            return BaseResponse(None, "Error during prediction", False, HTTPStatus.CONFLICT)
+            return BaseResponse(None, f"Error during prediction: {str(e)}", False, HTTPStatus.CONFLICT)
 
     def update_cloth(self, uuid, data):
         cloth = self.repo.get_by_uuid(uuid)
@@ -117,6 +127,18 @@ class ClothController:
 
     def list_cloth_by_status_and_period(self, status_id, period_id):
         cloth = self.repo.list_by_status_and_period(status_id, period_id)
+        if cloth:
+            return BaseResponse([self.to_dict(cloth) for cloth in cloth], "Clothes fetched", True, HTTPStatus.OK)
+        return BaseResponse(None, "Clothes not found", False, HTTPStatus.NOT_FOUND)
+    
+    def list_cloth_by_status_and_type(self, type, status_id):
+        cloth = self.repo.get_all_by_status_and_type(type, status_id)
+        if cloth:
+            return BaseResponse([self.to_dict(cloth) for cloth in cloth], "Clothes fetched", True, HTTPStatus.OK)
+        return BaseResponse(None, "Clothes not found", False, HTTPStatus.NOT_FOUND)
+    
+    def list_cloth_by_status(self, status_id):
+        cloth = self.repo.get_all_by_status(status_id)
         if cloth:
             return BaseResponse([self.to_dict(cloth) for cloth in cloth], "Clothes fetched", True, HTTPStatus.OK)
         return BaseResponse(None, "Clothes not found", False, HTTPStatus.NOT_FOUND)

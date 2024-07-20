@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from uuid import uuid4
 import datetime
@@ -19,8 +19,8 @@ class Cloth(Base):
     size = Column(String(10))
     status_id = Column(Integer, ForeignKey('status.id'))
     period_id = Column(Integer, ForeignKey('period.id'))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    sold_at = Column(DateTime, nullable=True)
+    created_at = Column(Date, default=datetime.date.today)
+    sold_at = Column(Date, nullable=True)
     
     status = relationship("Status", back_populates="clothes")
     period = relationship("Period", back_populates="clothes")
