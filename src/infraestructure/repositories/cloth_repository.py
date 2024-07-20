@@ -31,6 +31,9 @@ class ClothRepository:
     def search_by_type_and_period(self, type, period_id):
         return self.session.query(Cloth).filter(Cloth.type == type, Cloth.period_id == period_id).all()
     
+    def get_cloth_and_user_id(self, cloth_id):
+        return self.session.query(Cloth, Period.user_id).join(Period).filter(Cloth.id == cloth_id).first()
+    
     def get_to_statics(self, user_id):
         return self.session.query(Cloth).join(Period).filter(Period.user_id == user_id).options(joinedload(Cloth.period)).all()
 

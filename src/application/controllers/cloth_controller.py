@@ -25,40 +25,31 @@ class ClothController:
             return BaseResponse(None, err.messages, False, HTTPStatus.BAD_REQUEST)
         
     def get_sales_prediction(self, user_id):
-        sales_data = self.repo.get_to_statics(user_id)
-        
-        if not sales_data:
-            return BaseResponse(None, "No sales data available", False, 404)
-        
-        df = pd.DataFrame([{
-            'date': cloth.sold_at,
-            'quantity': cloth.quantity
-        } for cloth in sales_data])
-        
-        if df.empty:
-            return BaseResponse(None, "No sales data available", False, 404)
-        
-        # Asegurarse de que las fechas estén ordenadas
-        df = df.sort_values('date')
-        df.set_index('date', inplace=True)
+        try:
+            # Obtener datos de la base de datos
+            cloth_data = self.repo.get_to_statics(user_id)
 
-        # Crear serie de tiempo sumando las cantidades vendidas por día
-        daily_sales = df.resample('D').sum()
+            # Procesar datos
+            data = [{'date': cloth.selled_date, 'quantity': 1} for cloth in cloth_data]
+            df = pd.DataFrame(data)
 
-        # Aplicar suavizado exponencial
-        model = ExponentialSmoothing(daily_sales['quantity'], trend='add', seasonal='add', seasonal_periods=7)
-        fit = model.fit()
+            # Asegurarse de que la fecha está en el formato correcto
+            df['date'] = pd.to_datetime(df['date'])
+            df = df.set_index('date')
+            
+            # Agrupar por día y contar las ventas
+            daily_sales = df.resample('D').sum().fillna(0)
 
-        # Predicciones
-        forecast = fit.forecast(steps=30)  # Predicción para los próximos 30 días
+            # Aplicar suavizado exponencial
+            daily_sales['forecast'] = daily_sales['quantity'].ewm(span=30, adjust=False).mean()
 
-        # Preparar los datos para la respuesta
-        response_data = {
-            'historical': daily_sales.to_dict(),
-            'forecast': forecast.to_dict()
-        }
-        
-        return BaseResponse(response_data, "Sales prediction data retrieved successfully", True, 200).__dict__
+            # Preparar la respuesta
+            response_data = daily_sales.reset_index().to_dict(orient='records')
+
+            return BaseResponse(response_data, "Time series data retrieved successfully.", True, 200)
+
+        except Exception as e:
+            return BaseResponse(None, "Error during prediction", False, 500)
 
     def update_cloth(self, uuid, data):
         cloth = self.repo.get_by_uuid(uuid)

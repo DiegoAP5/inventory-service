@@ -31,6 +31,11 @@ def list_clothes():
     response = controller.list_clothes()
     return response.to_response()
 
+@cloth_bp.route('/cloth/prediction/<user_id>', methods=['GET'])
+def get_statics():
+    response = controller.get_sales_prediction()
+    return response.to_response()
+
 @cloth_bp.route('/cloth/search', methods=['GET'])
 def search_cloth_by_type_and_period():
     type = request.args.get('type')
