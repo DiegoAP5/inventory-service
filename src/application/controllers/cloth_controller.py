@@ -131,9 +131,9 @@ class ClothController:
                         'sellPrice': cloth.sellPrice,
                         'sold_at': cloth.sold_at,
                         'status_id': cloth.status_id,
-                        'created_at': cloth.created_at
+                        'created_at': cloth.created_at,
+                        'user_id': user_id
                     },
-                    'user_id': user_id
                 }
                 return BaseResponse(response_data, "Cloth data and User ID retrieved successfully.", True, HTTPStatus.OK)
             else:
@@ -156,6 +156,12 @@ class ClothController:
     
     def list_cloth_by_status(self, status_id):
         cloth = self.repo.get_all_by_status(status_id)
+        if cloth:
+            return BaseResponse([self.to_dict(cloth) for cloth in cloth], "Clothes fetched", True, HTTPStatus.OK)
+        return BaseResponse(None, "Clothes not found", False, HTTPStatus.NOT_FOUND)
+    
+    def list_cloth_by_period_id(self, period_id):
+        cloth = self.repo.get_all_by_period(period_id)
         if cloth:
             return BaseResponse([self.to_dict(cloth) for cloth in cloth], "Clothes fetched", True, HTTPStatus.OK)
         return BaseResponse(None, "Clothes not found", False, HTTPStatus.NOT_FOUND)

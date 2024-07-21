@@ -10,7 +10,7 @@ def create_cloth():
     response = controller.create_cloth(data)
     return response.to_response()
 
-@cloth_bp.route('/cloth/user/<int:cloth_id>/', methods=['GET'])
+@cloth_bp.route('/cloth/user/<int:cloth_id>', methods=['GET'])
 def get_cloth_and_user_id(cloth_id):
     response = controller.get_cloth_and_user_id_by_cloth_id(cloth_id)
     return response.to_response()
@@ -39,6 +39,11 @@ def list_clothes():
 @cloth_bp.route('/cloth/prediction/<user_id>', methods=['GET'])
 def get_time_series(user_id):
     response = controller.get_sales_prediction(user_id)
+    return response.to_response()
+
+@cloth_bp.route('/cloth/period/<period_id>', methods=['GET'])
+def get_all_by_period(period_id):
+    response = controller.list_cloth_by_period_id(period_id)
     return response.to_response()
 
 @cloth_bp.route('/cloth/search', methods=['GET'])

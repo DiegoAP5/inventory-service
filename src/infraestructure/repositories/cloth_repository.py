@@ -37,6 +37,9 @@ class ClothRepository:
     def get_all_by_status(self, status_id):
         return self.session.query(Cloth).filter(Cloth.status_id == status_id).all()
     
+    def get_all_by_period(self, period_id):
+        return self.session.query(Cloth).filter(Cloth.period_id == period_id).all()
+    
     def get_cloth_and_user_id(self, cloth_id):
         return self.session.query(Cloth, Period.user_id).join(Period).filter(Cloth.id == cloth_id).first()
     
