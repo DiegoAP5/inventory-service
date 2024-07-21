@@ -116,10 +116,7 @@ class ClothController:
 
     def delete_cloth(self, id):
         cloth = self.repo.delete(id)
-        if cloth:
-            self.repo.delete(cloth)
-            return BaseResponse(None, "Cloth deleted successfully", True, HTTPStatus.NO_CONTENT)
-        return BaseResponse(None, "Cloth not found", False, HTTPStatus.NOT_FOUND)
+        return BaseResponse(cloth, "Cloth deleted", True, HTTPStatus.OK)
 
     def list_clothes(self):
         clothes = self.repo.get_all()
