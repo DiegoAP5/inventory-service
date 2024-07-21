@@ -8,7 +8,6 @@ from application.schemas.cloth_schema import ClothSchema
 from application.schemas.base_response import BaseResponse
 from http import HTTPStatus
 from datetime import timedelta
-import matplotlib.pyplot as plt
 import pandas as pd
 
 class ClothController:
@@ -73,19 +72,6 @@ class ClothController:
 
             # Combinar datos históricos y predicción
             combined_df = pd.concat([daily_sales, forecast_df])
-            
-            plt.figure(figsize=(12, 6))
-            plt.plot(combined_df.index, combined_df['quantity'], label='Actual Sales')
-            plt.plot(combined_df.index, combined_df['forecast'], label='Forecasted Sales', linestyle='--')
-            plt.xlabel('Date')
-            plt.ylabel('Quantity Sold')
-            plt.title('Sales Forecast using Exponential Smoothing')
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-
-            # Save the plot to a file
-            plt.savefig('sales_forecast.png')
 
             # Preparar la respuesta
             response_data = combined_df.reset_index().to_dict(orient='records')
