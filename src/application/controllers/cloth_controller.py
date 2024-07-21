@@ -7,6 +7,8 @@ from domain.models.cloth import Cloth
 from application.schemas.cloth_schema import ClothSchema
 from application.schemas.base_response import BaseResponse
 from http import HTTPStatus
+from datetime import timedelta
+import matplotlib.pyplot as plt
 import pandas as pd
 
 class ClothController:
@@ -52,9 +54,41 @@ class ClothController:
 
             # Aplicar suavizado exponencial
             daily_sales['forecast'] = daily_sales['quantity'].ewm(span=30, adjust=False).mean()
+            
+            last_date = daily_sales.index[-1]
+            forecast_dates = [last_date + timedelta(days=i) for i in range(1, 6)]
+            last_forecast = daily_sales['forecast'].iloc[-1]
+
+            forecast_values = [last_forecast] * 5  # Utilizar el último valor pronosticado como punto de partida
+            alpha = 2 / (30 + 1)  # Suavizado exponencial con el mismo span
+
+            for i in range(5):
+                forecast_values[i] = alpha * daily_sales['quantity'][-(5 - i):].mean() + (1 - alpha) * forecast_values[i]
+
+            forecast_df = pd.DataFrame({
+                'date': forecast_dates,
+                'quantity': [None] * 5,
+                'forecast': forecast_values
+            }).set_index('date')
+
+            # Combinar datos históricos y predicción
+            combined_df = pd.concat([daily_sales, forecast_df])
+            
+            plt.figure(figsize=(12, 6))
+            plt.plot(combined_df.index, combined_df['quantity'], label='Actual Sales')
+            plt.plot(combined_df.index, combined_df['forecast'], label='Forecasted Sales', linestyle='--')
+            plt.xlabel('Date')
+            plt.ylabel('Quantity Sold')
+            plt.title('Sales Forecast using Exponential Smoothing')
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+
+            # Save the plot to a file
+            plt.savefig('sales_forecast.png')
 
             # Preparar la respuesta
-            response_data = daily_sales.reset_index().to_dict(orient='records')
+            response_data = combined_df.reset_index().to_dict(orient='records')
 
             return BaseResponse(response_data, "Time series data retrieved successfully.", True, HTTPStatus.OK)
 
@@ -80,8 +114,8 @@ class ClothController:
             return BaseResponse(self.to_dict(cloth), "Cloth fetched successfully", True, HTTPStatus.OK)
         return BaseResponse(None, "Cloth not found", False, HTTPStatus.NOT_FOUND)
 
-    def delete_cloth(self, uuid):
-        cloth = self.repo.get_by_uuid(uuid)
+    def delete_cloth(self, id):
+        cloth = self.repo.delete(id)
         if cloth:
             self.repo.delete(cloth)
             return BaseResponse(None, "Cloth deleted successfully", True, HTTPStatus.NO_CONTENT)

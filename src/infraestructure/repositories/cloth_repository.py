@@ -13,8 +13,8 @@ class ClothRepository:
         self.session.refresh(cloth)
         return cloth
 
-    def get_by_uuid(self, uuid):
-        return self.session.query(Cloth).filter(Cloth.id == uuid).first()
+    def get_by_uuid(self, id):
+        return self.session.query(Cloth).filter(Cloth.id == id).first()
 
     def get_all(self):
         return self.session.query(Cloth).all()
@@ -22,8 +22,8 @@ class ClothRepository:
     def update(self, cloth: Cloth):
         self.session.commit()
 
-    def delete(self, uuid):
-        cloth = self.get_by_uuid(uuid)
+    def delete(self, id):
+        cloth = self.get_by_uuid(id)
         if cloth:
             self.session.delete(cloth)
             self.session.commit()
@@ -33,7 +33,7 @@ class ClothRepository:
     
     def get_all_by_status_and_type(self, type, status_id):
         return self.session.query(Cloth).filter(Cloth.type == type, Cloth.status_id == status_id).all()
-        
+
     def get_all_by_status(self, status_id):
         return self.session.query(Cloth).filter(Cloth.status_id == status_id).all()
     

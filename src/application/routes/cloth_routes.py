@@ -26,9 +26,9 @@ def get_cloth(uuid):
     response = controller.get_cloth(uuid)
     return response.to_response()
 
-@cloth_bp.route('/cloth/delete/<uuid>', methods=['DELETE'])
-def delete_cloth(uuid):
-    response = controller.delete_cloth(uuid)
+@cloth_bp.route('/cloth/delete/<id>', methods=['DELETE'])
+def delete_cloth(id):
+    response = controller.delete_cloth(id)
     return response.to_response()
 
 @cloth_bp.route('/cloth', methods=['GET'])
