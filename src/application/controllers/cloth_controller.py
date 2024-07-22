@@ -1,13 +1,18 @@
 from marshmallow import ValidationError
 from domain.models.cloth import Cloth
 from infraestructure.repositories.cloth_repository import ClothRepository
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from infraestructure.db import SessionLocal
 from domain.models.cloth import Cloth
+import xgboost as xgb
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 from application.schemas.cloth_schema import ClothSchema
 from application.schemas.base_response import BaseResponse
 from http import HTTPStatus
+import matplotlib.pyplot as plt
 from datetime import timedelta
+
 import pandas as pd
 
 class ClothController:
@@ -27,42 +32,55 @@ class ClothController:
         
     def get_sales_prediction(self, user_id):
         try:
-            # Obtener datos de la base de datos
             cloth_data = self.repo.get_to_statics(user_id)
-            
-            if not cloth_data:
-                return BaseResponse(None, "Not data found",False, HTTPStatus.BAD_REQUEST)
 
-            # Procesar datos
-            data = [{'date': cloth.sold_at, 'quantity': 1} for cloth in cloth_data]
+            if not cloth_data:
+                return BaseResponse(None, "No sales data found for the specified user.", False, HTTPStatus.BAD_REQUEST)
+
+            data = [{'date': cloth.sold_at, 'quantity': 1} for cloth in cloth_data if cloth.sold_at is not None]
             
             if not data:
                 return BaseResponse(None, "No valid sales dates found for the specified user.", False, HTTPStatus.BAD_REQUEST)
+
             df = pd.DataFrame(data)
 
-            # Asegurarse de que la fecha está en el formato correcto
             df['date'] = pd.to_datetime(df['date'], errors='coerce')
             df = df.dropna(subset=['date'])
             df = df.set_index('date')
-            
+
             if df.empty:
                 return BaseResponse(None, "No valid sales data after filtering dates.", False, HTTPStatus.BAD_REQUEST)
-            
-            # Agrupar por día y contar las ventas
+
             daily_sales = df.resample('D').sum().fillna(0)
 
-            # Aplicar suavizado exponencial
-            daily_sales['forecast'] = daily_sales['quantity'].ewm(span=30, adjust=False).mean()
-            
+            if daily_sales.empty:
+                return BaseResponse(None, "No sales data after resampling.", False, HTTPStatus.BAD_REQUEST)
+
+            daily_sales['day_of_year'] = daily_sales.index.dayofyear
+            daily_sales['day_of_week'] = daily_sales.index.dayofweek
+            daily_sales['week_of_year'] = daily_sales.index.isocalendar().week
+
+            X = daily_sales[['day_of_year', 'day_of_week', 'week_of_year']]
+            y = daily_sales['quantity']
+
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+            model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=100, learning_rate=0.1)
+            model.fit(X_train, y_train)
+
+            y_pred = model.predict(X_test)
+
+            rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
             last_date = daily_sales.index[-1]
             forecast_dates = [last_date + timedelta(days=i) for i in range(1, 6)]
-            last_forecast = daily_sales['forecast'].iloc[-1]
+            forecast_data = pd.DataFrame({
+                'day_of_year': [date.dayofyear for date in forecast_dates],
+                'day_of_week': [date.dayofweek for date in forecast_dates],
+                'week_of_year': [date.isocalendar().week for date in forecast_dates]
+            })
 
-            forecast_values = [last_forecast] * 5  # Utilizar el último valor pronosticado como punto de partida
-            alpha = 2 / (30 + 1)  # Suavizado exponencial con el mismo span
-
-            for i in range(5):
-                forecast_values[i] = alpha * daily_sales['quantity'][-(5 - i):].mean() + (1 - alpha) * forecast_values[i]
+            forecast_values = model.predict(forecast_data)
 
             forecast_df = pd.DataFrame({
                 'date': forecast_dates,
@@ -70,16 +88,14 @@ class ClothController:
                 'forecast': forecast_values
             }).set_index('date')
 
-            # Combinar datos históricos y predicción
             combined_df = pd.concat([daily_sales, forecast_df])
 
-            # Preparar la respuesta
             response_data = combined_df.reset_index().to_dict(orient='records')
 
-            return BaseResponse(response_data, "Time series data retrieved successfully.", True, HTTPStatus.OK)
+            return BaseResponse(response_data, "Time series data retrieved and forecasted successfully.", True, HTTPStatus.OK)
 
         except Exception as e:
-            return BaseResponse(None, f"Error during prediction: {str(e)}", False, HTTPStatus.CONFLICT)
+            return BaseResponse(None, f"An error occurred: {str(e)}", False, HTTPStatus.BAD_REQUEST)
 
     def update_cloth(self, uuid, data):
         cloth = self.repo.get_by_uuid(uuid)

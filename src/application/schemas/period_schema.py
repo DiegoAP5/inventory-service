@@ -8,4 +8,6 @@ class PeriodSchema(Schema):
     end = fields.Date(required=True)
     user_id = fields.Int(required=True)
     status_id = fields.Int(required=True)
+    name = fields.Str(required=True)
+    location = fields.Str(required=True)
     clothes = fields.List(fields.Int())
