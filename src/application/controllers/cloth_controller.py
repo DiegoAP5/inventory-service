@@ -10,7 +10,6 @@ from sklearn.metrics import mean_squared_error
 from application.schemas.cloth_schema import ClothSchema
 from application.schemas.base_response import BaseResponse
 from http import HTTPStatus
-import matplotlib.pyplot as plt
 from datetime import timedelta
 
 import pandas as pd
