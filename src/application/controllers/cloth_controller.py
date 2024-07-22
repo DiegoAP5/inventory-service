@@ -109,14 +109,22 @@ class ClothController:
             trend = "increase" if forecast_mean > previous_week_mean else "decrease"
 
             # Combinar datos históricos y predicción
-            combined_df = pd.concat([daily_sales, forecast_df])
+            combined_df = pd.concat([daily_sales, forecast_df]).reset_index()
+            
+            combined_df['date'] = combined_df['date'].dt.strftime('%Y-%m-%d')
 
-            response_data = {
-            'time_series': combined_df.reset_index().to_dict(orient='records'),
+            # Reemplazar NaNs por None
+            combined_df = combined_df.where(pd.notnull(combined_df), None)
+
+            # Seleccionar solo las columnas necesarias
+            response_data = combined_df[['date', 'quantity', 'forecast']].to_dict(orient='records')
+
+            response = {
+            'time_series': response_data,
             'trend': trend
-            }
+            }   
 
-            return BaseResponse(response_data, "Time series data retrieved and forecasted successfully.", True, HTTPStatus.OK)
+            return BaseResponse(response, "Time series data retrieved and forecasted successfully.", True, HTTPStatus.OK)
 
         except Exception as e:
             return BaseResponse(None, f"An error occurred: {str(e)}", False, HTTPStatus.BAD_REQUEST)
