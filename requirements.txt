@@ -7,4 +7,3 @@ marshmallow
 pandas
 statsmodels
 xgboost
-scikit-learn
