@@ -34,27 +34,34 @@ class ClothController:
             cloth_data = self.repo.get_to_statics(user_id)
 
             if not cloth_data:
-                return BaseResponse(None, "No sales data found for the specified user.", False, HTTPStatus.BAD_REQUEST)
+                return BaseResponse(None, "No sales data found for the specified user.", False, 404)
 
+        # Procesar datos
             data = [{'date': cloth.sold_at, 'quantity': 1} for cloth in cloth_data if cloth.sold_at is not None]
-            
+
+            # Verificar si se procesaron datos
             if not data:
-                return BaseResponse(None, "No valid sales dates found for the specified user.", False, HTTPStatus.BAD_REQUEST)
+                return BaseResponse(None, "No valid sales dates found for the specified user.", False, 404)
 
             df = pd.DataFrame(data)
 
+            # Asegurarse de que la fecha está en el formato correcto y eliminar nulos
             df['date'] = pd.to_datetime(df['date'], errors='coerce')
             df = df.dropna(subset=['date'])
             df = df.set_index('date')
 
+            # Verificar si hay datos después de eliminar nulos
             if df.empty:
-                return BaseResponse(None, "No valid sales data after filtering dates.", False, HTTPStatus.BAD_REQUEST)
+                return BaseResponse(None, "No valid sales data after filtering dates.", False, 404)
 
+            # Agrupar por día y contar las ventas
             daily_sales = df.resample('D').sum().fillna(0)
 
+            # Verificar si hay datos después del resampleo
             if daily_sales.empty:
-                return BaseResponse(None, "No sales data after resampling.", False, HTTPStatus.BAD_REQUEST)
+                return BaseResponse(None, "No sales data after resampling.", False, 404)
 
+            # Preparar los datos para XGBoost
             daily_sales['day_of_year'] = daily_sales.index.dayofyear
             daily_sales['day_of_week'] = daily_sales.index.dayofweek
             daily_sales['week_of_year'] = daily_sales.index.isocalendar().week
@@ -62,21 +69,26 @@ class ClothController:
             X = daily_sales[['day_of_year', 'day_of_week', 'week_of_year']]
             y = daily_sales['quantity']
 
+            # Dividir los datos en conjuntos de entrenamiento y prueba
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+            # Entrenar el modelo XGBoost
             model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=100, learning_rate=0.1)
             model.fit(X_train, y_train)
 
+            # Hacer predicciones
             y_pred = model.predict(X_test)
 
+            # Calcular el error de la predicción
             rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
+            # Predicción para los siguientes 5 días
             last_date = daily_sales.index[-1]
             forecast_dates = [last_date + timedelta(days=i) for i in range(1, 6)]
             forecast_data = pd.DataFrame({
                 'day_of_year': [date.dayofyear for date in forecast_dates],
                 'day_of_week': [date.dayofweek for date in forecast_dates],
-                'week_of_year': [date.isocalendar().week for date in forecast_dates]
+                'week_of_year': [date.isocalendar()[1] for date in forecast_dates]
             })
 
             forecast_values = model.predict(forecast_data)
@@ -87,9 +99,22 @@ class ClothController:
                 'forecast': forecast_values
             }).set_index('date')
 
+            # Calcular el promedio de ventas de la semana anterior y la semana de predicción
+            previous_week_dates = [last_date - timedelta(days=i) for i in range(6, -1, -1)]
+            previous_week_data = daily_sales.loc[previous_week_dates]
+            previous_week_mean = previous_week_data['quantity'].mean()
+
+            forecast_mean = forecast_df['forecast'].mean()
+
+            trend = "increase" if forecast_mean > previous_week_mean else "decrease"
+
+            # Combinar datos históricos y predicción
             combined_df = pd.concat([daily_sales, forecast_df])
 
-            response_data = combined_df.reset_index().to_dict(orient='records')
+            response_data = {
+            'time_series': combined_df.reset_index().to_dict(orient='records'),
+            'trend': trend
+            }
 
             return BaseResponse(response_data, "Time series data retrieved and forecasted successfully.", True, HTTPStatus.OK)
 
