@@ -10,8 +10,6 @@ class Period(Base):
     uuid = Column(String(36), default=lambda: str(uuid4()), unique=True, index=True)
     start = Column(Date)
     end = Column(Date)
-    name = Column(String(255))
-    location = Column(String(255))
     status_id = Column(Integer, ForeignKey('status.id'))
     user_id = Column(Integer)
     
