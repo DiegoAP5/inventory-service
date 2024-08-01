@@ -1,11 +1,13 @@
 from sqlalchemy.orm import Session
 from domain.models.cloth import Cloth
+from domain.models.User import User
 from domain.models.period import Period
 from sqlalchemy.orm import joinedload
 
 class ClothRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, session_user: Session):
         self.session = session
+        self.session_user = session_user
 
     def add(self, cloth: Cloth):
         self.session.add(cloth)
@@ -42,6 +44,9 @@ class ClothRepository:
     
     def get_cloth_and_user_id(self, cloth_id):
         return self.session.query(Cloth, Period.user_id).join(Period).filter(Cloth.id == cloth_id).first()
+    
+    def get_user_by_id(self, user_id):
+        return self.session_user.query(User).filter(User.id == user_id).first()
     
     def get_to_statics(self, user_id):
         return self.session.query(Cloth).join(Period).filter(Period.user_id == user_id).options(joinedload(Cloth.period)).all()

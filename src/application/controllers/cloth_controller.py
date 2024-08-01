@@ -2,6 +2,7 @@ from marshmallow import ValidationError
 from domain.models.cloth import Cloth
 from infraestructure.repositories.cloth_repository import ClothRepository
 from infraestructure.db import SessionLocal
+from infraestructure.db import SessionLocalUser
 from domain.models.cloth import Cloth
 import xgboost as xgb
 import numpy as np
@@ -17,7 +18,8 @@ import pandas as pd
 class ClothController:
     def __init__(self):
         self.session = SessionLocal()
-        self.repo = ClothRepository(self.session)
+        self.session_user = SessionLocalUser()
+        self.repo = ClothRepository(self.session, self.session_user)
         self.schema = ClothSchema()
 
     def create_cloth(self, data):
@@ -169,26 +171,32 @@ class ClothController:
 
             if result:
                 cloth, user_id = result
+                user = self.repo.get_user_by_id(user_id)
                 response_data = {
-                    'cloth': {
-                        'id': cloth.id,
-                        'uuid': cloth.uuid,
-                        'period_id': cloth.period_id,
-                        'type': cloth.type,
-                        'buy': cloth.buy,
-                        'sellPrice': cloth.sellPrice,
-                        'sold_at': cloth.sold_at,
-                        'status_id': cloth.status_id,
-                        'created_at': cloth.created_at,
-                        'user_id': user_id
-                    },
-                }
+                        
+                            'id': cloth.id,
+                            'uuid': cloth.uuid,
+                            'period_id': cloth.period_id,
+                            'type': cloth.type,
+                            'buy': cloth.buy,
+                            'sellPrice': cloth.sellPrice,
+                            'sold_at': cloth.sold_at,
+                            'status_id': cloth.status_id,
+                            'created_at': cloth.created_at,
+                        'user': {
+                            'id': user.id,
+                            'name': user.name,
+                            'email': user.email,
+                            'cellphone': user.cellphone
+                        }
+                    
+                    }
                 return BaseResponse(response_data, "Cloth data and User ID retrieved successfully.", True, HTTPStatus.OK)
             else:
                 return BaseResponse(None, "Cloth ID not found.", False, HTTPStatus.NOT_FOUND)
             
         except Exception as e:
-            return BaseResponse(None, "Error", False, 500)
+            return BaseResponse(None, f"Error: ${e}", False, HTTPStatus.BAD_REQUEST)
 
     def list_cloth_by_status_and_period(self, status_id, period_id):
         cloth = self.repo.list_by_status_and_period(status_id, period_id)
